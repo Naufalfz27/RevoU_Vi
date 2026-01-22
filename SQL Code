@@ -1,0 +1,142 @@
+WITH wa_fixed AS (
+    SELECT
+        transaction_id,
+        user_id,
+        message_type,
+        last_status AS status,
+        is_charge,
+        1 AS quantity,
+        price AS unit_price,
+        CASE
+            WHEN is_charge = TRUE THEN price
+            ELSE 0
+        END AS revenue,
+        TIMESTAMP(
+          DATETIME_ADD(
+            DATETIME(created_at),
+            INTERVAL 2000 YEAR
+          )
+        ) AS created_at
+    FROM `revou-vi-001.telkom_oca.Whatsapp`
+),
+
+sms_fixed AS (
+    SELECT
+        transaction_id,
+        user_id,
+        message_status AS status,
+        is_charge,
+        total_sms AS quantity,
+        price AS unit_price,
+        CASE
+            WHEN is_charge = TRUE THEN total_price
+            ELSE 0
+        END AS revenue,
+        TIMESTAMP(
+          DATETIME_ADD(
+            DATETIME(created_at),
+            INTERVAL 2000 YEAR
+          )
+        ) AS created_at
+    FROM `revou-vi-001.telkom_oca.Sms`
+),
+
+email_fixed AS (
+    SELECT
+        transaction_id,
+        user_id,
+        message_status AS status,
+        is_charge,
+        1 AS quantity,
+        price AS unit_price,
+        CASE
+            WHEN is_charge = TRUE THEN price
+            ELSE 0
+        END AS revenue,
+        TIMESTAMP(
+          DATETIME_ADD(
+            DATETIME(created_at),
+            INTERVAL 2000 YEAR
+          )
+        ) AS created_at
+    FROM `revou-vi-001.telkom_oca.Email`
+),
+
+call_fixed AS (
+    SELECT
+        transaction_id,
+        user_id,
+        message_status AS status,
+        is_charge,
+        1 AS quantity,
+        total_price AS unit_price,
+        CASE
+            WHEN is_charge = TRUE THEN total_price
+            ELSE 0
+        END AS revenue,
+        TIMESTAMP(
+          DATETIME_ADD(
+            DATETIME(created_at),
+            INTERVAL 2000 YEAR
+          )
+        ) AS created_at
+    FROM `revou-vi-001.telkom_oca.Call`
+)
+
+SELECT
+    transaction_id,
+    user_id,
+    'WhatsApp' AS channel,
+    message_type,
+    status,
+    is_charge,
+    quantity,
+    unit_price,
+    revenue,
+    created_at
+FROM wa_fixed
+
+UNION ALL
+
+SELECT
+    transaction_id,
+    user_id,
+    'SMS' AS channel,
+    NULL AS message_type,
+    status,
+    is_charge,
+    quantity,
+    unit_price,
+    revenue,
+    created_at
+FROM sms_fixed
+
+UNION ALL
+
+SELECT
+    transaction_id,
+    user_id,
+    'Email' AS channel,
+    NULL AS message_type,
+    status,
+    is_charge,
+    quantity,
+    unit_price,
+    revenue,
+    created_at
+FROM email_fixed
+
+UNION ALL
+
+SELECT
+    transaction_id,
+    user_id,
+    'Call' AS channel,
+    NULL AS message_type,
+    status,
+    is_charge,
+    quantity,
+    unit_price,
+    revenue,
+    created_at
+FROM call_fixed;
